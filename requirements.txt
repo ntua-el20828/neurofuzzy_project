@@ -1,0 +1,8 @@
+wfdb
+scipy
+numpy
+matplotlib
+scikit-learn
+scikit-fuzzy
+torch>=2.0
+tqdm
