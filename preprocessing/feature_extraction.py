@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.signal import find_peaks
 
+def safe_mean(arr):
+    return np.mean(arr) if arr.size > 0 else 0.0
+
 def extract_features(beats: np.ndarray, r_peaks: np.ndarray, fs: int = 360) -> np.ndarray:
     """
     Extract six features per beat:
@@ -31,6 +34,8 @@ def extract_features(beats: np.ndarray, r_peaks: np.ndarray, fs: int = 360) -> n
     pre_window = int(0.1 * fs)  # 100ms before R-peak
     
     for i, beat in enumerate(beats):
+        if beat.size == 0:
+            continue  # or append np.zeros(shape) as a placeholder
         # 1. QRS duration
         # Simple method: zero-crossing points around R-peak
         mid_point = pre_window  # R-peak position in the beat
@@ -66,8 +71,8 @@ def extract_features(beats: np.ndarray, r_peaks: np.ndarray, fs: int = 360) -> n
         # 5. T-wave polarity (compared to QRS)
         t_segment = beat[qrs_offset:min(len(beat), qrs_offset+int(0.3*fs))]
         if len(t_segment) > 0:
-            qrs_sign = np.sign(np.mean(beat[qrs_onset:qrs_offset]))
-            t_sign = np.sign(np.mean(t_segment))
+            qrs_sign = np.sign(safe_mean(beat[qrs_onset:qrs_offset]))
+            t_sign = np.sign(safe_mean(t_segment))
             features[i, 4] = 1.0 if qrs_sign * t_sign < 0 else 0.0  # 1 if opposite polarity
         else:
             features[i, 4] = 0.0

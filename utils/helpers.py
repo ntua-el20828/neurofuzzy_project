@@ -18,7 +18,9 @@ def set_seed(seed=42):
 
 def save_model(model, path):
     """Save model to disk."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    dir_name = os.path.dirname(path)
+    if dir_name:  # Only create directory if not empty
+        os.makedirs(dir_name, exist_ok=True)
     torch.save(model.state_dict(), path)
     print(f"Model saved to {path}")
 

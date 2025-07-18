@@ -48,7 +48,7 @@ def prepare_data(beats, features, labels, test_size=0.2):
     
     return train_dataset, test_dataset
 
-def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001):
+def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001, patience=7, weight_decay=1e-4):
     """
     Train the NeuroFuzzyNet model.
     
@@ -86,13 +86,15 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001):
     
     # Loss and optimizer
     loss_fn = model.get_loss_fn()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
-    
+   
     # Training loop
     best_val_loss = float('inf')
     best_model = None
     best_config = None
+    epochs_no_improve = 0
+
     
     for epoch in range(epochs):
         # Training phase
@@ -153,6 +155,14 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001):
             best_config = {"seq_len": beats.shape[1]}
             save_model(model, "best_model.pth")
             save_model_config(best_config, "best_model_config.json")
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+
+        # Early stopping
+        if epochs_no_improve >= patience:
+            print(f"Early stopping at epoch {epoch+1}")
+            break
 
     
     # Load best model
