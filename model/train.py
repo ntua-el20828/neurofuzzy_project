@@ -72,16 +72,17 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001, pa
     tuple
         Trained model and metrics
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     # Prepare data
     train_dataset, test_dataset = prepare_data(beats, features, labels)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
     
     # Compute class weights for imbalanced data
-    pos_weight = torch.tensor([(len(labels) - labels.sum()) / max(labels.sum(), 1)])
+    pos_weight = torch.tensor([(len(labels) - labels.sum()) / max(labels.sum(), 1)], device=device)
     
     # Initialize model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = NeuroFuzzyNet(seq_len=beats.shape[1], class_weights=pos_weight).to(device)
     
     # Loss and optimizer

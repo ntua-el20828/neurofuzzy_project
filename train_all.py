@@ -64,7 +64,7 @@ def main():
     start_time = time.time()
     model, metrics = train_model(
         all_beats, all_features, all_labels,
-        epochs=30, batch_size=64, lr=0.001
+        epochs=100, batch_size=32, lr=0.0001, patience=7, weight_decay=1e-4
     )
     elapsed = time.time() - start_time
     print(f"Training complete in {elapsed/60:.1f} minutes.")
