@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import random
 import wfdb
+import json
 
 def set_seed(seed=42):
     """Set seed for reproducibility."""
@@ -30,6 +31,16 @@ def load_model(model_class, path, device=None):
     model.eval()
     print(f"Model loaded from {path}")
     return model
+
+def save_model_config(config, path):
+    """Save model config (e.g., seq_len) as JSON."""
+    with open(path, "w") as f:
+        json.dump(config, f)
+
+def load_model_config(path):
+    """Load model config from JSON."""
+    with open(path, "r") as f:
+        return json.load(f)
 
 def get_available_records():
     """Get list of available MIT-BIH records."""

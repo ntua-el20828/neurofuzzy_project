@@ -58,6 +58,18 @@ def evaluate_model(model, beats, features, labels, batch_size=32):
             all_targets.append(y_batch.numpy())
     
     # Concatenate batches
+    if len(all_probs) == 0 or len(all_preds) == 0 or len(all_targets) == 0:
+        return {
+            "accuracy": 0.0,
+            "sensitivity": 0.0,
+            "specificity": 0.0,
+            "precision": 0.0,
+            "f1": 0.0,
+            "confusion_matrix": np.zeros((2,2)),
+            "roc_auc": 0.0,
+            "fpr": [0.0, 1.0],
+            "tpr": [0.0, 1.0]
+        }
     all_probs = np.vstack(all_probs).flatten()
     all_preds = np.vstack(all_preds).flatten()
     all_targets = np.vstack(all_targets).flatten()

@@ -7,6 +7,8 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from .neurofuzzy_net import NeuroFuzzyNet
 from utils.metrics import calculate_metrics
+from utils.helpers import save_model, save_model_config
+
 
 def prepare_data(beats, features, labels, test_size=0.2):
     """
@@ -90,6 +92,7 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001):
     # Training loop
     best_val_loss = float('inf')
     best_model = None
+    best_config = None
     
     for epoch in range(epochs):
         # Training phase
@@ -147,6 +150,10 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001):
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = model.state_dict().copy()
+            best_config = {"seq_len": beats.shape[1]}
+            save_model(model, "best_model.pth")
+            save_model_config(best_config, "best_model_config.json")
+
     
     # Load best model
     model.load_state_dict(best_model)

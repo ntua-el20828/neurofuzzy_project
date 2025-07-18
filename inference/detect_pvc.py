@@ -1,11 +1,14 @@
 import wfdb
 import numpy as np
 import torch
+import os
 from preprocessing.filter_ecg import bandpass_filter
 from preprocessing.pan_tompkins import detect_r_peaks
 from preprocessing.segment_beats import segment_beats
 from preprocessing.feature_extraction import extract_features
 from model.neurofuzzy_net import NeuroFuzzyNet
+from utils.helpers import load_model_config
+    
 
 def load_annotations(record_name, fs):
     """
@@ -94,11 +97,17 @@ def run_pvc_detection(ecg_path, ann_path=None, model_path=None):
     if model_path:
         try:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model = NeuroFuzzyNet().to(device)
+            # Load config if available
+            config_path = model_path.replace(".pth", "_config.json")
+            seq_len = beats.shape[1]
+            if os.path.exists(config_path):
+                config = load_model_config(config_path)
+                seq_len = config.get("seq_len", seq_len)
+            model = NeuroFuzzyNet(seq_len=seq_len).to(device)
             model.load_state_dict(torch.load(model_path, map_location=device))
             model.eval()
             
-            # Convert to torch tensors
+            # Convert to torch tensors and move to device
             X = torch.FloatTensor(beats).to(device)
             f = torch.FloatTensor(features).to(device)
             
@@ -116,4 +125,4 @@ def run_pvc_detection(ecg_path, ann_path=None, model_path=None):
     else:
         # No model provided, just return features and ground truth for training
         print("No model provided, returning features for training")
-        return beats, features, ground_truth.tolist()
+        return beats.tolist(), features.tolist(), ground_truth.tolist()
