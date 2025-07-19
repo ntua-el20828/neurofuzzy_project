@@ -1,3 +1,4 @@
+from xml.parsers.expat import model
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,6 +10,7 @@ from .neurofuzzy_net import NeuroFuzzyNet
 from utils.metrics import calculate_metrics
 from utils.helpers import save_model, save_model_config
 
+#DEVICE = torch.device("cpu")
 
 def prepare_data(beats, features, labels, test_size=0.2):
     """
@@ -48,7 +50,7 @@ def prepare_data(beats, features, labels, test_size=0.2):
     
     return train_dataset, test_dataset
 
-def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001, patience=7, weight_decay=1e-4):
+def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.0001, patience=7, weight_decay=1e-4):
     """
     Train the NeuroFuzzyNet model.
     
@@ -73,6 +75,7 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001, pa
         Trained model and metrics
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #device = DEVICE
 
     # Prepare data
     train_dataset, test_dataset = prepare_data(beats, features, labels)
@@ -112,6 +115,8 @@ def train_model(beats, features, labels, epochs=100, batch_size=32, lr=0.001, pa
             # Backward pass and optimize
             optimizer.zero_grad()
             loss.backward()
+            # In your training loop, after loss.backward() and before optimizer.step():
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             
             train_loss += loss.item()

@@ -12,6 +12,7 @@ from model.train import train_model
 
 DATA_DIR = "training data"
 
+
 def get_record_names(data_dir):
     """Return list of record names (without extension) in the data directory."""
     records = []
@@ -59,12 +60,21 @@ def main():
     all_labels = np.concatenate(all_labels)
     print(f"Total beats: {all_beats.shape[0]}")
 
+    # After concatenating all_beats and all_features, before training:
+    all_features = (all_features - all_features.mean(axis=0)) / (all_features.std(axis=0) + 1e-8)
+    all_beats = (all_beats - all_beats.mean()) / (all_beats.std() + 1e-8)
+
+    # Add this block:
+    for arr, name in [(all_beats, "beats"), (all_features, "features"), (all_labels, "labels")]:
+        if np.isnan(arr).any() or np.isinf(arr).any():
+            print(f"ERROR: NaN or Inf detected in {name}!")
+
     # Train the model with progress bar and time estimation
     print("Starting training...")
     start_time = time.time()
     model, metrics = train_model(
         all_beats, all_features, all_labels,
-        epochs=100, batch_size=32, lr=0.0001, patience=7, weight_decay=1e-4
+        epochs=100, batch_size=64, lr=0.000005, patience=7, weight_decay=1e-6
     )
     elapsed = time.time() - start_time
     print(f"Training complete in {elapsed/60:.1f} minutes.")

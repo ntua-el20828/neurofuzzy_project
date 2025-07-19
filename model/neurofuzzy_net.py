@@ -26,7 +26,7 @@ class NeuroFuzzyNet(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(concat_features, 32),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),  # Increased dropout from 0.3 to 0.5
             nn.Linear(32, 1)
         )
         
